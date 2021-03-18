@@ -1,8 +1,5 @@
 package com.rest.taf.model.controller;
 
-import java.time.LocalDate;
-import java.time.Period;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,18 +15,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.rest.taf.DTO.CredenciaisDTO;
 import com.rest.taf.DTO.TokenDTO;
-import com.rest.taf.DTO.retornoExercicioAtual;
 import com.rest.taf.enums.Genero;
-import com.rest.taf.enums.IndiceTaf;
 import com.rest.taf.exception.SenhaInvalidaException;
-import com.rest.taf.model.Exercicio;
-import com.rest.taf.model.IndicePorExercicio;
-import com.rest.taf.model.Indices;
 import com.rest.taf.model.Usuario;
-import com.rest.taf.repositories.IndicesRepository;
 import com.rest.taf.repositories.UsuarioRepository;
 import com.rest.taf.security.JwtService;
-import com.rest.taf.services.ExercicioService;
 import com.rest.taf.services.UsuarioServiceImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -40,9 +28,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/usuario")
 @RequiredArgsConstructor
 public class UsuarioController {
-
-	@Autowired
-	private IndicesRepository indicesRepository;
 
 	@Autowired
 	UsuarioRepository usuarioRepository;
@@ -75,10 +60,7 @@ public class UsuarioController {
 			Usuario usuario = Usuario.builder().email(credenciais.getEmail()).senha(credenciais.getSenha()).build();
 			Usuario usuarioAutenticado = usuarioService.autenticar(usuario);
 
-			// REALIZA CALCULO DE IDADE
-			final LocalDate dataAtual = LocalDate.now();
-			final Period periodo = Period.between(usuarioAutenticado.getNascimento(), dataAtual);
-			int idade = periodo.getYears();
+			int idade = usuarioAutenticado.geraIdadeUsuario();
 
 			String token = jwtService.gerarToken(usuario);
 			var tokenDto = TokenDTO.builder().id(usuarioAutenticado.getId()).nome(usuarioAutenticado.getNome())
@@ -91,25 +73,7 @@ public class UsuarioController {
 		}
 	}
 
-	@GetMapping("/{idade}")
-	public ResponseEntity<?> getIndiceTeste(@PathVariable("idade") int idade) {
-		user.setIdade(idade);
-		Exercicio exer = new Exercicio();
-		exer.setCorrida(3200);
-		exer.setFlexao(33);
-		exer.setAbdominal(63);
-		exer.setBarra(13);
-		exer.setUsuario(user);
+	
 
-		List<Indices> findByIdadeAndGenero = indicesRepository.findByIdadeAndGenero(idade,
-				exer.getUsuario().getGenero());
-
-		List<IndicePorExercicio> buscaIndiceDoExercicio = ExercicioService.buscaIndiceDoExercicio(exer,
-				findByIdadeAndGenero);
-		IndiceTaf defineIndicePorResultadosDeExercicios = ExercicioService
-				.defineIndicePorResultadosDeExercicios(buscaIndiceDoExercicio);
-
-		return ResponseEntity.ok(retornoExercicioAtual.builder().indiceTaf(buscaIndiceDoExercicio)
-				.resultadoFinal(defineIndicePorResultadosDeExercicios).build());
-	}
+	
 }

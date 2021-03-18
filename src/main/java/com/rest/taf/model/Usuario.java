@@ -1,6 +1,7 @@
 package com.rest.taf.model;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.Collection;
 import java.util.List;
 
@@ -79,6 +80,14 @@ public class Usuario implements UserDetails{
 	@JsonBackReference
 	@OneToMany(mappedBy = "usuario")
 	private List<Exercicio> exercicio;
+	
+	public int geraIdadeUsuario() {
+		// REALIZA CALCULO DE IDADE
+		final LocalDate dataAtual = LocalDate.now();
+		final Period periodo = Period.between(this.getNascimento(), dataAtual);
+		int idade = periodo.getYears();
+		return idade;
+	}
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
