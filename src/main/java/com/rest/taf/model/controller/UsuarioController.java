@@ -20,7 +20,7 @@ import com.rest.taf.exception.SenhaInvalidaException;
 import com.rest.taf.model.Usuario;
 import com.rest.taf.repositories.UsuarioRepository;
 import com.rest.taf.security.JwtService;
-import com.rest.taf.services.UsuarioServiceImpl;
+import com.rest.taf.services.impl.UsuarioServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 

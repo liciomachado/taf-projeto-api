@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.rest.taf.services.UsuarioServiceImpl;
+import com.rest.taf.services.impl.UsuarioServiceImpl;
 
 public class JwtAuthFilter extends OncePerRequestFilter {
 

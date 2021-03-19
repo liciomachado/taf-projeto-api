@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class retornoExercicioAtual {
+public class RetornoExercicioAtual {
 
 	@Enumerated(value = EnumType.STRING)
 	private List<IndicePorExercicio> indiceTaf;

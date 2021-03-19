@@ -4,11 +4,16 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.rest.taf.model.Usuario;
+import com.rest.taf.services.impl.UsuarioServiceImpl;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -23,6 +28,9 @@ public class JwtService {
 	
 	@Value("${security.jwt.chave-assinatura}")
 	private String chaveAssinatura;
+	
+	@Autowired
+	private UsuarioServiceImpl usuarioService;
 	
 	public String gerarToken(Usuario usuario) {
 		long expString = Long.valueOf(expiracao);
@@ -67,4 +75,14 @@ public class JwtService {
 		return (String) obterClaims(token).getSubject();
 	}
 	
+	public Optional<Usuario> pegaUsuarioPorToken(HttpServletRequest request) {
+		String authorization = request.getHeader("Authorization");
+		
+		if(authorization != null && authorization.startsWith("Bearer")) {
+			String token = authorization.split(" ")[1];
+			String emailUsuario = (String) obterClaims(token).getSubject();
+			return usuarioService.getUsuarioPorEmail(emailUsuario);
+		}
+		return null;
+	}
 }

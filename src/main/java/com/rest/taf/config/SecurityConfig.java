@@ -15,7 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.rest.taf.security.JwtAuthFilter;
 import com.rest.taf.security.JwtService;
-import com.rest.taf.services.UsuarioServiceImpl;
+import com.rest.taf.services.impl.UsuarioServiceImpl;
 
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
