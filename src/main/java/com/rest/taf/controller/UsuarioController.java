@@ -1,4 +1,4 @@
-package com.rest.taf.model.controller;
+package com.rest.taf.controller;
 
 import java.util.Optional;
 

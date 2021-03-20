@@ -1,5 +1,6 @@
-package com.rest.taf.model.controller;
+package com.rest.taf.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,14 +34,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ExercicioController {
 
-	@Autowired
-	private IndicesRepository indicesRepository;
-
-	@Autowired
-	UsuarioRepository usuarioRepository;
-
+	private final IndicesRepository indicesRepository;
+	private final UsuarioRepository usuarioRepository;
 	private final ExercicioService exercicioService;
-
 	private final JwtService jwtService;
 
 	@GetMapping("/{id}")
@@ -58,17 +54,21 @@ public class ExercicioController {
 	@PostMapping("/salvar")
 	public ResponseEntity<?> salvarExercicio(@Valid @RequestBody Exercicio exercicio, HttpServletRequest request) {
 		Optional<Usuario> usuarioPorId = jwtService.pegaUsuarioPorToken(request);
-
+		exercicio.setDataExercicio(LocalDateTime.now());
 		if (usuarioPorId.isPresent()) {
 			List<Indices> findByIdadeAndGenero = indicesRepository
 					.findByIdadeAndGenero(usuarioPorId.get().geraIdadeUsuario(), usuarioPorId.get().getGenero());
 			exercicio.setUsuario(usuarioPorId.get());
 			try {
-				exercicioService.salvar(exercicio);
+				Exercicio saved = exercicioService.salvar(exercicio);
 				List<IndicePorExercicio> buscaIndiceDoExercicio = exercicioService.buscaIndiceDoExercicio(exercicio,findByIdadeAndGenero);
 				IndiceTaf defineIndicePorResultadosDeExercicios = exercicioService.defineIndicePorResultadosDeExercicios(buscaIndiceDoExercicio);
-
+				if(usuarioPorId.get().getIndiceTaf() == null) {
+					usuarioPorId.get().setIndiceTaf(defineIndicePorResultadosDeExercicios);
+					usuarioRepository.save(usuarioPorId.get());
+				}
 				return ResponseEntity.ok(RetornoExercicioAtual.builder().indiceTaf(buscaIndiceDoExercicio)
+						.dataExercicio(saved.getDataExercicio())
 						.resultadoFinal(defineIndicePorResultadosDeExercicios).build());
 			} catch (Exception e) {
 				return ResponseEntity.badRequest().body("Erro ao salvar exercicio");

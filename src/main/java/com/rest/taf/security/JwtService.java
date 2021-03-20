@@ -25,13 +25,13 @@ public class JwtService {
 
 	@Value("${security.jwt.expiracao}")
 	private String expiracao;
-	
+
 	@Value("${security.jwt.chave-assinatura}")
 	private String chaveAssinatura;
-	
+
 	@Autowired
 	private UsuarioServiceImpl usuarioService;
-	
+
 	public String gerarToken(Usuario usuario) {
 		long expString = Long.valueOf(expiracao);
 		LocalDateTime dataHoraExpiracao = LocalDateTime.now().plusMinutes(expString);
@@ -42,24 +42,16 @@ public class JwtService {
 		 * HashMap<String, Object> claims = new HashMap<>(); claims.put("email",
 		 * "email@email.com"); claims.put("roles", "ADMIN");
 		 */
-		
-		return Jwts
-					.builder()
-					.setSubject(usuario.getEmail())
-					.setExpiration(data)
-					//.setClaims(claims)
-					.signWith(SignatureAlgorithm.HS512, chaveAssinatura)
-					.compact();
+
+		return Jwts.builder().setSubject(usuario.getEmail()).setExpiration(data)
+				// .setClaims(claims)
+				.signWith(SignatureAlgorithm.HS512, chaveAssinatura).compact();
 	}
-	
-	private Claims obterClaims ( String token) throws ExpiredJwtException {
-		return Jwts
-				.parser()
-				.setSigningKey(chaveAssinatura)
-				.parseClaimsJws(token)
-				.getBody();
+
+	private Claims obterClaims(String token) throws ExpiredJwtException {
+		return Jwts.parser().setSigningKey(chaveAssinatura).parseClaimsJws(token).getBody();
 	}
-	
+
 	public boolean tokenValido(String token) {
 		try {
 			Claims claims = obterClaims(token);
@@ -70,15 +62,15 @@ public class JwtService {
 			return false;
 		}
 	}
-	
+
 	public String obterLoginUsuario(String token) throws ExpiredJwtException {
 		return (String) obterClaims(token).getSubject();
 	}
-	
+
 	public Optional<Usuario> pegaUsuarioPorToken(HttpServletRequest request) {
 		String authorization = request.getHeader("Authorization");
-		
-		if(authorization != null && authorization.startsWith("Bearer")) {
+
+		if (authorization != null && authorization.startsWith("Bearer")) {
 			String token = authorization.split(" ")[1];
 			String emailUsuario = (String) obterClaims(token).getSubject();
 			return usuarioService.getUsuarioPorEmail(emailUsuario);

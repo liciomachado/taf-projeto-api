@@ -1,10 +1,12 @@
 package com.rest.taf.DTO;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.rest.taf.enums.IndiceTaf;
 import com.rest.taf.model.IndicePorExercicio;
 
@@ -21,6 +23,9 @@ public class RetornoExercicioAtual {
 
 	@Enumerated(value = EnumType.STRING)
 	private List<IndicePorExercicio> indiceTaf;
+	
+	@JsonFormat(pattern="HH:mm dd/MM/yyyy")
+	private LocalDateTime dataExercicio;	
 	
 	private IndiceTaf resultadoFinal;
 }
