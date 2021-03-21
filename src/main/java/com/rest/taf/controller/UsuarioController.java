@@ -1,5 +1,6 @@
 package com.rest.taf.controller;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,10 +62,15 @@ public class UsuarioController {
 			Usuario usuarioAutenticado = usuarioService.autenticar(usuario);
 
 			int idade = usuarioAutenticado.geraIdadeUsuario();
-
+			
+			int size = usuarioAutenticado.getExercicio().size();
+			LocalDateTime dataUltimoExercicio = null;
+			if (size > 0) { dataUltimoExercicio = usuarioAutenticado.getExercicio().get(size - 1).getDataExercicio();}
+			
 			String token = jwtService.gerarToken(usuario);
 			var tokenDto = TokenDTO.builder().id(usuarioAutenticado.getId()).nome(usuarioAutenticado.getNome())
 					.email(usuarioAutenticado.getEmail()).idade(idade).indiceTaf(usuarioAutenticado.getIndiceTaf())
+					.dataUltimoExercicio(dataUltimoExercicio)
 					.token(token).build();
 			return tokenDto;
 

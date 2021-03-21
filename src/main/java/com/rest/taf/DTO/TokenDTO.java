@@ -1,5 +1,8 @@
 package com.rest.taf.DTO;
 
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.rest.taf.enums.IndiceTaf;
 
 import lombok.AllArgsConstructor;
@@ -20,6 +23,9 @@ public class TokenDTO {
 	private String email;
 	
 	private int idade;
+	
+	@JsonFormat(pattern="HH:mm dd/MM/yyyy")
+	private LocalDateTime dataUltimoExercicio;
 	
 	private IndiceTaf indiceTaf;
 	
