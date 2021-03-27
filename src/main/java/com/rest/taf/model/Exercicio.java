@@ -11,6 +11,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
@@ -43,7 +44,11 @@ public class Exercicio {
 	@Column(name = "corrida")
 	private int corrida;
 	
+	@Column(name = "diaSemana")
+	private int diaSemana;
+	
 	@ManyToOne
+	@JsonBackReference
 	@JoinColumn(name = "usuario_id_usuario")
 	private Usuario usuario;
 	

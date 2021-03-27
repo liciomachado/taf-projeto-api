@@ -3,11 +3,11 @@ package com.rest.taf.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,21 +55,30 @@ public class ExercicioController {
 	public ResponseEntity<?> salvarExercicio(@Valid @RequestBody Exercicio exercicio, HttpServletRequest request) {
 		Optional<Usuario> usuarioPorId = jwtService.pegaUsuarioPorToken(request);
 		exercicio.setDataExercicio(LocalDateTime.now());
+		var dia = usuarioPorId.get().novoDia();
 		if (usuarioPorId.isPresent()) {
 			List<Indices> findByIdadeAndGenero = indicesRepository
 					.findByIdadeAndGenero(usuarioPorId.get().geraIdadeUsuario(), usuarioPorId.get().getGenero());
 			exercicio.setUsuario(usuarioPorId.get());
+			exercicio.setDiaSemana(dia);
+			
 			try {
 				Exercicio saved = exercicioService.salvar(exercicio);
 				List<IndicePorExercicio> buscaIndiceDoExercicio = exercicioService.buscaIndiceDoExercicio(exercicio,findByIdadeAndGenero);
 				IndiceTaf defineIndicePorResultadosDeExercicios = exercicioService.defineIndicePorResultadosDeExercicios(buscaIndiceDoExercicio);
+				usuarioPorId.get().setDiaDesafio(dia);
 				if(usuarioPorId.get().getIndiceTaf() == null) {
-					usuarioPorId.get().setIndiceTaf(defineIndicePorResultadosDeExercicios);
-					usuarioRepository.save(usuarioPorId.get());
+					usuarioPorId.get().setIndiceTaf(defineIndicePorResultadosDeExercicios);					
+					
 				}
+				usuarioRepository.save(usuarioPorId.get());
+				
+				//RETORNO DTO
 				return ResponseEntity.ok(RetornoExercicioAtual.builder().indiceTaf(buscaIndiceDoExercicio)
 						.dataExercicio(saved.getDataExercicio())
-						.resultadoFinal(defineIndicePorResultadosDeExercicios).build());
+						.resultadoFinal(defineIndicePorResultadosDeExercicios)
+						.diaDesafio(dia)
+						.build());
 			} catch (Exception e) {
 				return ResponseEntity.badRequest().body("Erro ao salvar exercicio");
 			}
@@ -99,5 +108,17 @@ public class ExercicioController {
 		}
 		return ResponseEntity.badRequest().body("Erro ao realizar busca");
 	}
-
+	
+	@GetMapping("/semana/{semana}")
+	public ResponseEntity<?> getSemanaDeExercicio(@PathVariable("semana") Long semana, HttpServletRequest request) {
+		Optional<Usuario> usuarioPorId = jwtService.pegaUsuarioPorToken(request);
+		int semanaDia = (int) (semana * 7);
+		List<Exercicio> listaPorSemana = usuarioPorId.get().getExercicio().stream()
+				.filter(c -> c.getDiaSemana() > (semanaDia - 7) && c.getDiaSemana() <= (semanaDia))
+				.collect(Collectors.toList());
+		
+		return ResponseEntity.ok(listaPorSemana);
+		//return ResponseEntity.badRequest().body("Erro ao realizar busca");
+	}
+	
 }

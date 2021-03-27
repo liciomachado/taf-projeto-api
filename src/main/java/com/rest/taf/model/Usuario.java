@@ -56,7 +56,6 @@ public class Usuario implements UserDetails{
 	@Column(name = "nome")
 	private String nome;
 	
-	
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)	
 	@Column(name = "senha")
 	private String senha;
@@ -80,6 +79,9 @@ public class Usuario implements UserDetails{
 	@JsonBackReference
 	@OneToMany(mappedBy = "usuario")
 	private List<Exercicio> exercicio;
+	
+	@Column(name = "diaDesafio")
+	private int diaDesafio;
 	
 	public int geraIdadeUsuario() {
 		// REALIZA CALCULO DE IDADE
@@ -131,6 +133,10 @@ public class Usuario implements UserDetails{
 	public boolean isEnabled() {
 		// TODO Auto-generated method stub
 		return true;
+	}
+
+	public int novoDia() {
+		return this.diaDesafio + 1;
 	}
 			
 }

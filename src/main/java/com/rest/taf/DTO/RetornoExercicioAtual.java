@@ -28,4 +28,7 @@ public class RetornoExercicioAtual {
 	private LocalDateTime dataExercicio;	
 	
 	private IndiceTaf resultadoFinal;
+	
+	private int diaDesafio;
+	
 }

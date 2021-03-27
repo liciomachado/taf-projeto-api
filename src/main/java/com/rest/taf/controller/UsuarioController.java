@@ -3,12 +3,15 @@ package com.rest.taf.controller;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,14 +45,33 @@ public class UsuarioController {
 	public ResponseEntity<?> salvar(@RequestBody Usuario usuario) {
 		try {
 			Optional<Usuario> busca = usuarioRepository.findByEmail(usuario.getEmail());
-			if (busca.isPresent()) {
+			if (busca.isPresent() && usuario.getId() == null) {
 				return ResponseEntity.badRequest().body("Email já cadastrado");
 			} else {
+				usuario.setDiaDesafio(0);
 				// usuario.setSenha("123321");
 				usuario.setSenha(new BCryptPasswordEncoder(12).encode(usuario.getSenha()));
 				Usuario saved = usuarioRepository.save(usuario);
 				return ResponseEntity.ok(saved);
 			}
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body(e);
+		}
+	}
+
+	@PutMapping("/updateuser")
+	public ResponseEntity<?> alterarUsuario(@RequestBody Usuario usuario, HttpServletRequest request) {
+		try {
+			Usuario usuarioPorId = jwtService.pegaUsuarioPorToken(request).get();
+			usuarioPorId.setNome(usuario.getNome());
+			usuarioPorId.setEmail(usuario.getEmail());
+			usuarioPorId.setNascimento(usuario.getNascimento());
+			usuarioPorId.setGenero(usuario.getGenero());
+			if (usuario.getSenha() != "") {
+				usuarioPorId.setSenha(new BCryptPasswordEncoder(12).encode(usuario.getSenha()));
+			}
+			usuarioRepository.save(usuarioPorId);
+			return ResponseEntity.ok(HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body(e);
 		}
@@ -62,24 +84,30 @@ public class UsuarioController {
 			Usuario usuarioAutenticado = usuarioService.autenticar(usuario);
 
 			int idade = usuarioAutenticado.geraIdadeUsuario();
-			
+
 			int size = usuarioAutenticado.getExercicio().size();
 			LocalDateTime dataUltimoExercicio = null;
-			if (size > 0) { dataUltimoExercicio = usuarioAutenticado.getExercicio().get(size - 1).getDataExercicio();}
-			
+			if (size > 0) {
+				dataUltimoExercicio = usuarioAutenticado.getExercicio().get(size - 1).getDataExercicio();
+			}
+
 			String token = jwtService.gerarToken(usuario);
-			var tokenDto = TokenDTO.builder().id(usuarioAutenticado.getId()).nome(usuarioAutenticado.getNome())
-					.email(usuarioAutenticado.getEmail()).idade(idade).indiceTaf(usuarioAutenticado.getIndiceTaf())
-					.dataUltimoExercicio(dataUltimoExercicio)
-					.token(token).build();
+			var tokenDto = TokenDTO.builder()
+					.id(usuarioAutenticado.getId())
+					.nome(usuarioAutenticado.getNome())
+					.email(usuarioAutenticado.getEmail())
+					.idade(idade)
+					.nascimento(usuarioAutenticado.getNascimento())
+					.diaDesafio(usuarioAutenticado.getDiaDesafio())
+					.genero(usuarioAutenticado.getGenero())
+					.indiceTaf(usuarioAutenticado.getIndiceTaf())
+					.dataUltimoExercicio(dataUltimoExercicio).token(token)
+					.build();
 			return tokenDto;
 
 		} catch (UsernameNotFoundException | SenhaInvalidaException e) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha ou login invalidos");
 		}
 	}
 
-	
-
-	
 }
